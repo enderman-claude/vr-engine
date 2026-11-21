@@ -25,10 +25,25 @@ jobs:
         if: failure()
         shell: bash
         run: |
-          # Compiler and linker lines, as annotations (readable via the checks API).
           grep -E "error|LNK[0-9]+|fatal" build.log | grep -v "hmderrors" | head -40 | while IFS= read -r line; do
             echo "::error title=compile::${line}"
           done
-          echo "::error title=build-log-size::$(wc -l < build.log) lines"
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
+
+  eye-modes:
+    strategy:
+      fail-fast: false
+      matrix:
+        eye_mode: [right, left, variable, no_vr, no_render]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        shell: bash
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DVRE_EYE_MODE=${{ matrix.eye_mode }}
+      - name: Build
+        shell: bash
+        run: cmake --build build --parallel
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
