@@ -56,6 +56,8 @@ if(VRE_ENABLE_STEAMVR)
         set(VRE_OPENVR_TARGET openvr_api)
     endif()
     target_link_libraries(vre PRIVATE ${VRE_OPENVR_TARGET})
+    # Static OpenVR: without this, openvr.h declares VR_* as dllimport on Windows.
+    target_compile_definitions(vre PRIVATE OPENVR_BUILD_STATIC)
     target_compile_definitions(vre PUBLIC VRE_HAS_STEAMVR=1)
 else()
     target_compile_definitions(vre PUBLIC VRE_HAS_STEAMVR=0)
