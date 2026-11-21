@@ -101,9 +101,6 @@ PackageResult package_archive(const std::vector<Entry>& entries, const fs::path&
     if (ec) return fail("cannot copy runtime: " + ec.message());
     make_executable(runtime_dst);
 
-    std::ofstream manifest(out / "manifest.txt", std::ios::trunc);
-    if (!manifest) return fail("cannot write manifest.txt");
-
     PackageResult r;
     for (const auto& e : entries) {
         const fs::path dst = out / fs::path(e.rel);
@@ -111,11 +108,8 @@ PackageResult package_archive(const std::vector<Entry>& entries, const fs::path&
         if (ec) return fail("cannot create folder for " + e.rel + ": " + ec.message());
         fs::copy_file(e.abs, dst, fs::copy_options::overwrite_existing, ec);
         if (ec) return fail("cannot copy " + e.rel + ": " + ec.message());
-        manifest << e.rel << '\n';
         ++r.files;
     }
-    if (!manifest) return fail("cannot write manifest.txt");
-
     r.ok = true;
     return r;
 }

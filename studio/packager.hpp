@@ -15,7 +15,7 @@ struct PackageResult {
 
 // Packages a project directory with a runtime executable.
 //  SingleFile: one executable = runtime bytes + an appended asset table.
-//  Archive:    a folder with the runtime, the project's folder tree, and manifest.txt.
+//  Archive:    a folder with the runtime and the project's folder tree.
 PackageResult package_project(const std::filesystem::path& project_dir,
                               const std::filesystem::path& runtime,
                               const std::filesystem::path& out,

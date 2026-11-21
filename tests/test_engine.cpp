@@ -132,7 +132,7 @@ TEST_CASE("no_render mode counts frames but does no work") {
     CHECK(r.work_sum == 0);
 }
 
-TEST_CASE("archive packaging keeps the folder tree and writes a manifest") {
+TEST_CASE("archive packaging keeps the folder tree") {
     const fs::path project = make_project("archive");
     const fs::path runtime = make_runtime("archive");
     const fs::path out = fs::temp_directory_path() / "vre_test_out_archive";
@@ -145,7 +145,7 @@ TEST_CASE("archive packaging keeps the folder tree and writes a manifest") {
     CHECK(fs::exists(out / "assets" / "textures" / "wall.png"));
     CHECK(fs::exists(out / "assets" / "readme.txt"));
     CHECK(fs::exists(out / "scenes" / "main.scene"));
-    CHECK(fs::exists(out / "manifest.txt"));
+    CHECK(!fs::exists(out / "manifest.txt"));
 }
 
 TEST_CASE("single-file packaging appends a verifiable asset table to the runtime") {
