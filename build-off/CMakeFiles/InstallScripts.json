@@ -1,0 +1,11 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/claude/work/vr-engine/build-off/cmake_install.cmake",
+		"/home/claude/work/vr-engine/build-off/_deps/glm-build/cmake_install.cmake",
+		"/home/claude/work/vr-engine/build-off/_deps/glm-build/glm/cmake_install.cmake",
+		"/home/claude/work/vr-engine/build-off/_deps/enkits-build/cmake_install.cmake",
+		"/home/claude/work/vr-engine/build-off/_deps/doctest-build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

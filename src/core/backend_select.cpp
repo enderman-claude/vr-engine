@@ -9,7 +9,7 @@ Backend* make_null_backend();
 Backend* make_steamvr_backend();
 #endif
 
-Backend* select_backend(const std::string& preferred) {
+Backend* select_backend([[maybe_unused]] const std::string& preferred) {
     std::vector<Backend*> candidates;
 #if VRE_HAS_STEAMVR
     if (preferred.empty() || preferred == "steamvr") candidates.push_back(make_steamvr_backend());

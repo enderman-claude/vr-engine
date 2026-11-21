@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/claude/work/vr-engine/build-off/_deps/enkits-subbuild/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

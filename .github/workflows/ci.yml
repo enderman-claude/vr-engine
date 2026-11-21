@@ -15,8 +15,27 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Configure
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        shell: bash
+        run: |
+          set -o pipefail
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release 2>&1 | tee configure.log
       - name: Build
-        run: cmake --build build --config Release --parallel
+        shell: bash
+        run: |
+          set -o pipefail
+          cmake --build build --config Release --parallel 2>&1 | tee build.log
       - name: Test
-        run: ctest --test-dir build -C Release --output-on-failure
+        shell: bash
+        run: |
+          set -o pipefail
+          ctest --test-dir build -C Release --output-on-failure 2>&1 | tee test.log
+      - name: Surface compiler errors as annotations
+        if: failure()
+        shell: bash
+        run: |
+          for f in configure.log build.log test.log; do
+            [ -f "$f" ] || continue
+            grep -E "error C[0-9]+|warning C[0-9]+|fatal error|LNK[0-9]+|CMake Error|: error:|: warning:|\*\*\* " "$f" | head -10 | while IFS= read -r line; do
+              echo "::error title=$f::$line"
+            done
+          done
