@@ -3,7 +3,8 @@
 Living document. Update at the end of every work session. Newest entries at the top of each section.
 
 ## Status
-- Milestone 0 (in progress): repo, license, CMake skeleton, CI on Linux and Windows.
+- M0 complete: repo, license, CMake, CI on Linux and Windows.
+- M1 started: job system (enkiTS), GLM, doctest, and the OpenVR SDK are integrated and pinned.
 
 ## Milestones
 - **M0 Foundation** — repo, MIT license, CMake, CI (Linux + Windows), null backend, tests. *Current.*
@@ -28,7 +29,13 @@ Living document. Update at the end of every work session. Newest entries at the 
 ## Open questions
 - Build-time or runtime selection of curvature (owner to decide).
 - Whether the repos become public (affects license visibility).
-- Dependencies to evaluate for integration (OpenVR, a job system library, a math library, a test framework).
+- Next dependencies to evaluate: a windowing/graphics layer (for the flatscreen path), a shader toolchain, and an image/asset loader.
+
+## Dependency policy
+- Owner approved (session 2): use mature, permissive-licensed open source without per-item approval. Permissive means MIT, BSD, Apache-2.0, Zlib, ISC, or similar. Exclude GPL/AGPL/LGPL and unlicensed code unless the owner says otherwise.
+- Every dependency is pinned to a commit in CMake, listed in THIRD_PARTY_NOTICES.md, and has its license text in third_party/licenses/.
+- Verify license, activity, and release before adoption. Record in the session log.
 
 ## Session log
 - Session 1: created repos, license, CMake skeleton, null and SteamVR-stub backends, tests, CI workflow.
+- Session 2: adopted GLM 1.0.3 (MIT option), OpenVR v2.15.6 (BSD-3), enkiTS v1.12 (Zlib), doctest v2.5.3 (MIT). SteamVR backend now initializes through OpenVR and falls back cleanly when no runtime is present. Job system wraps enkiTS with parallel_for. Tests moved to doctest. Note: the open-source-reuse skill's per-dependency approval rule was waived by the owner for permissive licenses.
