@@ -1,1 +1,0 @@
-/usr/bin/c++ -Wl,--dependency-file=CMakeFiles/vre_tests.dir/link.d CMakeFiles/vre_tests.dir/tests/test_engine.cpp.o -o vre_tests  libvre.a _deps/enkits-build/libenkiTS.a

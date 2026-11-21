@@ -1,2 +1,0 @@
-/usr/bin/ar qc libvre.a CMakeFiles/vre.dir/src/core/backend_select.cpp.o CMakeFiles/vre.dir/src/core/null_backend.cpp.o CMakeFiles/vre.dir/src/core/job_system.cpp.o
-/usr/bin/ranlib libvre.a
