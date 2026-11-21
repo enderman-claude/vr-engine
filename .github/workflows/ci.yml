@@ -28,3 +28,17 @@ jobs:
       - name: Test
         shell: bash
         run: ctest --test-dir build -C Release --output-on-failure
+
+  diag-windows-nosteamvr:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure (SteamVR off)
+        shell: bash
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DVRE_ENABLE_STEAMVR=OFF
+      - name: Build (SteamVR off)
+        shell: bash
+        run: cmake --build build --config Release --parallel
+      - name: Test (SteamVR off)
+        shell: bash
+        run: ctest --test-dir build -C Release --output-on-failure
