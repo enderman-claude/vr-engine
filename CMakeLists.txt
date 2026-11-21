@@ -34,8 +34,10 @@ add_library(vre
     src/core/job_system.cpp
 )
 target_include_directories(vre PUBLIC include)
-target_include_directories(vre PRIVATE ${enkits_SOURCE_DIR}/src)
-target_link_libraries(vre PUBLIC glm::glm PRIVATE enkiTS)
+# Third-party headers are SYSTEM includes so their warnings never reach our -Werror/-WX builds.
+target_include_directories(vre SYSTEM PUBLIC ${glm_SOURCE_DIR})
+target_include_directories(vre SYSTEM PRIVATE ${enkits_SOURCE_DIR}/src)
+target_link_libraries(vre PRIVATE enkiTS)
 target_compile_features(vre PUBLIC cxx_std_17)
 
 if(VRE_ENABLE_STEAMVR)
@@ -46,6 +48,7 @@ if(VRE_ENABLE_STEAMVR)
     set(USE_LIBCXX OFF CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(openvr)
     target_sources(vre PRIVATE src/core/steamvr_backend.cpp)
+    target_include_directories(vre SYSTEM PRIVATE ${openvr_SOURCE_DIR}/headers)
     target_link_libraries(vre PRIVATE openvr_api)
     target_compile_definitions(vre PUBLIC VRE_HAS_STEAMVR=1)
 else()
@@ -53,7 +56,8 @@ else()
 endif()
 
 if(MSVC)
-    target_compile_options(vre PRIVATE /W4 /WX)
+    # /external:W0 silences warnings from includes marked external (third-party).
+    target_compile_options(vre PRIVATE /W4 /WX /external:anglebrackets /external:W0)
 else()
     target_compile_options(vre PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
