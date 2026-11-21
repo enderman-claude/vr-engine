@@ -19,6 +19,16 @@ jobs:
         shell: bash
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DVRE_ENABLE_STEAMVR=${{ matrix.steamvr }}
       - name: Build
-        run: cmake --build build --config Release --parallel
+        shell: bash
+        run: cmake --build build --config Release --parallel > build.log 2>&1
+      - name: Report build errors
+        if: failure()
+        shell: bash
+        run: |
+          # Compiler and linker lines, as annotations (readable via the checks API).
+          grep -E "error|LNK[0-9]+|fatal" build.log | grep -v "hmderrors" | head -40 | while IFS= read -r line; do
+            echo "::error title=compile::${line}"
+          done
+          echo "::error title=build-log-size::$(wc -l < build.log) lines"
       - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
