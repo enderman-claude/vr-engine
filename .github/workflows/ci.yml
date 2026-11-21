@@ -11,34 +11,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
+        steamvr: [ON, OFF]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Configure
         shell: bash
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DVRE_ENABLE_STEAMVR=${{ matrix.steamvr }}
       - name: Build
-        shell: bash
-        run: |
-          cmake --build build --config Release --parallel > build.log 2>&1
-          rc=$?
-          # Surface the build log as annotations so failures are readable from the API.
-          tail -60 build.log | sed 's/^/::error title=build::/'
-          exit $rc
-      - name: Test
-        shell: bash
-        run: ctest --test-dir build -C Release --output-on-failure
-
-  diag-windows-nosteamvr:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Configure (SteamVR off)
-        shell: bash
-        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DVRE_ENABLE_STEAMVR=OFF
-      - name: Build (SteamVR off)
-        shell: bash
         run: cmake --build build --config Release --parallel
-      - name: Test (SteamVR off)
-        shell: bash
+      - name: Test
         run: ctest --test-dir build -C Release --output-on-failure
