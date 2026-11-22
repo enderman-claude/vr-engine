@@ -212,3 +212,17 @@ TEST_CASE("archive game finds its assets in the folder it sits in") {
     const fs::path exe = out / fs::path(VRE_RUNTIME_PATH).filename();
     CHECK(run_runtime(exe, "--frames 2 --expect-assets 3") == 0);
 }
+
+#ifndef VRE_SNAKE_PATH
+#define VRE_SNAKE_PATH "vr_snake"
+#endif
+
+TEST_CASE("VR Snake packages as a single file and runs from it") {
+    const fs::path project = make_project("snake_packed");
+    const fs::path out = fs::temp_directory_path() / "vre_test_vr_snake.bin";
+    fs::remove(out);
+
+    const auto res = studio::package_project(project, VRE_SNAKE_PATH, out, studio::PackageKind::SingleFile);
+    REQUIRE(res.ok);
+    CHECK(run_runtime(out, "--frames 30 --expect-assets 3") == 0);
+}

@@ -85,7 +85,7 @@ endif()
 vre_apply_warnings(vre)
 
 # Studio: project runner and packager (single-file binary or archive folder).
-add_library(vre_studio_core STATIC studio/studio.cpp studio/packager.cpp)
+add_library(vre_studio_core STATIC studio/studio.cpp studio/packager.cpp studio/host.cpp)
 target_include_directories(vre_studio_core PUBLIC studio)
 target_link_libraries(vre_studio_core PUBLIC vre)
 vre_apply_warnings(vre_studio_core)
@@ -99,6 +99,16 @@ add_executable(vre_runtime runtime/main.cpp)
 target_link_libraries(vre_runtime PRIVATE vre_studio_core)
 vre_apply_warnings(vre_runtime)
 
+# VR Snake: the official test game.
+add_library(vr_snake_logic STATIC games/vr_snake/snake.cpp)
+target_include_directories(vr_snake_logic PUBLIC games/vr_snake)
+target_link_libraries(vr_snake_logic PUBLIC vre)
+vre_apply_warnings(vr_snake_logic)
+
+add_executable(vr_snake games/vr_snake/main.cpp)
+target_link_libraries(vr_snake PRIVATE vr_snake_logic vre_studio_core)
+vre_apply_warnings(vr_snake)
+
 if(VRE_BUILD_TESTS)
     FetchContent_Declare(doctest
         GIT_REPOSITORY https://github.com/doctest/doctest.git
@@ -107,11 +117,13 @@ if(VRE_BUILD_TESTS)
     FetchContent_MakeAvailable(doctest)
 
     enable_testing()
-    add_executable(vre_tests tests/test_engine.cpp)
-    target_link_libraries(vre_tests PRIVATE vre_studio_core doctest::doctest)
+    add_executable(vre_tests tests/test_engine.cpp tests/test_snake.cpp)
+    target_link_libraries(vre_tests PRIVATE vre_studio_core vr_snake_logic doctest::doctest)
     add_test(NAME engine_tests COMMAND vre_tests)
     add_test(NAME studio_smoke COMMAND vre_studio --frames 3)
     add_test(NAME runtime_smoke COMMAND vre_runtime --frames 3)
     target_compile_definitions(vre_tests PRIVATE VRE_RUNTIME_PATH=\"$<TARGET_FILE:vre_runtime>\")
-    add_dependencies(vre_tests vre_runtime)
+    target_compile_definitions(vre_tests PRIVATE VRE_SNAKE_PATH=\"$<TARGET_FILE:vr_snake>\")
+    add_dependencies(vre_tests vre_runtime vr_snake)
+    add_test(NAME snake_smoke COMMAND vr_snake --frames 300)
 endif()
