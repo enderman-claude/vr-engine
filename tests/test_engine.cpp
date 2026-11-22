@@ -177,3 +177,38 @@ TEST_CASE("packaging reports a clear error for a missing project") {
     CHECK(!res.ok);
     CHECK(!res.error.empty());
 }
+
+#ifndef VRE_RUNTIME_PATH
+#define VRE_RUNTIME_PATH "vre_runtime"
+#endif
+
+namespace {
+int run_runtime(const fs::path& exe, const std::string& args) {
+    std::string cmd = "\"" + exe.string() + "\" " + args;
+#ifdef _WIN32
+    cmd = "\"" + cmd + "\"";  // cmd.exe strips one outer pair of quotes
+#endif
+    return std::system(cmd.c_str());
+}
+}  // namespace
+
+TEST_CASE("packed single-file game finds and loads its own assets at startup") {
+    const fs::path project = make_project("runtime_packed");
+    const fs::path out = fs::temp_directory_path() / "vre_test_packed_game.bin";
+    fs::remove(out);
+
+    const auto res = studio::package_project(project, VRE_RUNTIME_PATH, out, studio::PackageKind::SingleFile);
+    REQUIRE(res.ok);
+    CHECK(run_runtime(out, "--frames 2 --expect-assets 3") == 0);
+}
+
+TEST_CASE("archive game finds its assets in the folder it sits in") {
+    const fs::path project = make_project("runtime_archive");
+    const fs::path out = fs::temp_directory_path() / "vre_test_archive_game";
+    fs::remove_all(out);
+
+    const auto res = studio::package_project(project, VRE_RUNTIME_PATH, out, studio::PackageKind::Archive);
+    REQUIRE(res.ok);
+    const fs::path exe = out / fs::path(VRE_RUNTIME_PATH).filename();
+    CHECK(run_runtime(exe, "--frames 2 --expect-assets 3") == 0);
+}

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
+#include <utility>
 #include <vector>
 
 namespace fs = std::filesystem;
@@ -168,7 +169,8 @@ PackageResult package_project(const fs::path& project_dir,
     }
 }
 
-bool verify_single_file(const fs::path& file, std::size_t& entries) {
+bool read_pak_index(const fs::path& file, std::vector<PakEntry>& entries) {
+    entries.clear();
     std::error_code ec;
     const auto total = fs::file_size(file, ec);
     if (ec || total < kTrailerSize) return false;
@@ -187,15 +189,31 @@ bool verify_single_file(const fs::path& file, std::size_t& entries) {
     for (std::uint64_t i = 0; i < count; ++i) {
         std::uint32_t path_len = 0;
         if (!get_u32(in, path_len) || path_len > kMaxPathLength) return false;
-        std::string rel(path_len, '\0');
-        if (!get_bytes(in, rel.data(), path_len)) return false;
-        std::uint64_t size = 0;
-        if (!get_u64(in, size)) return false;
-        in.seekg(static_cast<std::streamoff>(size), std::ios::cur);
+        PakEntry e;
+        e.rel.assign(path_len, '\0');
+        if (!get_bytes(in, e.rel.data(), path_len)) return false;
+        if (!get_u64(in, e.size)) return false;
+        e.offset = static_cast<std::uint64_t>(in.tellg());
+        in.seekg(static_cast<std::streamoff>(e.size), std::ios::cur);
         if (!in) return false;
+        entries.push_back(std::move(e));
     }
-    entries = static_cast<std::size_t>(count);
     return static_cast<std::uint64_t>(in.tellg()) == total - kTrailerSize;
+}
+
+bool read_pak_data(const fs::path& file, const PakEntry& entry, std::vector<char>& data) {
+    std::ifstream in(file, std::ios::binary);
+    if (!in) return false;
+    in.seekg(static_cast<std::streamoff>(entry.offset));
+    data.resize(static_cast<std::size_t>(entry.size));
+    return entry.size == 0 || static_cast<bool>(in.read(data.data(), static_cast<std::streamsize>(entry.size)));
+}
+
+bool verify_single_file(const fs::path& file, std::size_t& entries) {
+    std::vector<PakEntry> index;
+    if (!read_pak_index(file, index)) return false;
+    entries = index.size();
+    return true;
 }
 
 }  // namespace studio

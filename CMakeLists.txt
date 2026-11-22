@@ -94,6 +94,11 @@ add_executable(vre_studio studio/main.cpp)
 target_link_libraries(vre_studio PRIVATE vre_studio_core)
 vre_apply_warnings(vre_studio)
 
+# The game runtime: packaged games are this executable plus assets.
+add_executable(vre_runtime runtime/main.cpp)
+target_link_libraries(vre_runtime PRIVATE vre_studio_core)
+vre_apply_warnings(vre_runtime)
+
 if(VRE_BUILD_TESTS)
     FetchContent_Declare(doctest
         GIT_REPOSITORY https://github.com/doctest/doctest.git
@@ -106,4 +111,7 @@ if(VRE_BUILD_TESTS)
     target_link_libraries(vre_tests PRIVATE vre_studio_core doctest::doctest)
     add_test(NAME engine_tests COMMAND vre_tests)
     add_test(NAME studio_smoke COMMAND vre_studio --frames 3)
+    add_test(NAME runtime_smoke COMMAND vre_runtime --frames 3)
+    target_compile_definitions(vre_tests PRIVATE VRE_RUNTIME_PATH=\"$<TARGET_FILE:vre_runtime>\")
+    add_dependencies(vre_tests vre_runtime)
 endif()

@@ -4,15 +4,19 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
+#include <filesystem>
 #include <map>
 #include <string>
+
+namespace fs = std::filesystem;
 
 namespace {
 
 void usage() {
     std::puts("usage:\n"
               "  vre_studio [--eye-mode M] [--backend B] [--frames N] [--threads N]\n"
-              "  vre_studio package --project-dir D --runtime R --out O --kind single|archive");
+              "  vre_studio package --project-dir D --kind single|archive --out O [--runtime R]\n"
+              "    (R defaults to vre_runtime next to this executable)");
 }
 
 // Parses "--key value" pairs starting at argv[start].
@@ -25,19 +29,27 @@ bool parse_flags(int argc, char** argv, int start, std::map<std::string, std::st
     return true;
 }
 
-int run_package(const std::map<std::string, std::string>& flags) {
+fs::path default_runtime(const char* argv0) {
+    fs::path name = "vre_runtime";
+#ifdef _WIN32
+    name += ".exe";
+#endif
+    return fs::path(argv0).parent_path() / name;
+}
+
+int run_package(const std::map<std::string, std::string>& flags, const char* argv0) {
     auto get = [&flags](const char* key) -> std::string {
         auto it = flags.find(key);
         return it == flags.end() ? std::string() : it->second;
     };
     const std::string kind = get("kind");
-    if (get("project-dir").empty() || get("runtime").empty() || get("out").empty() ||
-        (kind != "single" && kind != "archive")) {
+    if (get("project-dir").empty() || get("out").empty() || (kind != "single" && kind != "archive")) {
         usage();
         return 2;
     }
+    const fs::path runtime = get("runtime").empty() ? default_runtime(argv0) : fs::path(get("runtime"));
     const auto pk = kind == "single" ? studio::PackageKind::SingleFile : studio::PackageKind::Archive;
-    const auto result = studio::package_project(get("project-dir"), get("runtime"), get("out"), pk);
+    const auto result = studio::package_project(get("project-dir"), runtime, get("out"), pk);
     if (!result.ok) {
         std::fprintf(stderr, "package failed: %s\n", result.error.c_str());
         return 1;
@@ -55,7 +67,7 @@ int main(int argc, char** argv) {
         usage();
         return 2;
     }
-    if (packaging) return run_package(flags);
+    if (packaging) return run_package(flags, argv[0]);
 
     studio::Project project;
     if (flags.count("eye-mode") && !vre::parse_eye_mode(flags["eye-mode"], project.eye_mode)) {
