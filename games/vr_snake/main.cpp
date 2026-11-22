@@ -6,8 +6,11 @@
 
 #include <cstdio>
 
+namespace {
+constexpr std::uint32_t kSeed = 2026u;
+}  // namespace
+
 int main(int argc, char** argv) {
-    constexpr std::uint32_t kSeed = 2026u;
     snake::Game game(20, 12, kSeed);
     std::uint32_t deaths = 0;
 
